@@ -1,5 +1,10 @@
 package com.popsugar.shopping.bo;
 
+/**
+ * Wrapper around a specific image URL, providing metadata about the actual image. For a given
+ * product, the same picture will be available in different sizes. Each size has its own Image
+ * object
+ */
 public class Image
 {
     public enum SizeName {
@@ -11,6 +16,9 @@ public class Image
     private int height;
     private String url;
 
+    /**
+     * Returns the name of the size of this image.
+     */
     public SizeName getSizeName()
     {
         return sizeName;
@@ -21,6 +29,9 @@ public class Image
         this.sizeName = sizeName;
     }
 
+    /**
+     * Returns the maximum width of the image. Currently this is NOT the actual width of the image
+     */
     public int getWidth()
     {
         return width;
@@ -31,6 +42,9 @@ public class Image
         this.width = width;
     }
 
+    /**
+     * Returns the maximum height of the image. Currently this is NOT the actual height of the image
+     */
     public int getHeight()
     {
         return height;
@@ -41,6 +55,9 @@ public class Image
         this.height = height;
     }
 
+    /**
+     * Returns the URL of the image file
+     */
     public String getUrl()
     {
         return url;

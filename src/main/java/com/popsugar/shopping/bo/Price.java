@@ -3,28 +3,31 @@ package com.popsugar.shopping.bo;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Brand implements SearchFilter
+/**
+ * Filter to select products within a price range
+ */
+public class Price implements SearchFilter
 {
     private final long id;
     private final String name;
     private final String url;
-
+    
     @JsonCreator
-    public Brand(@JsonProperty("id") long id, @JsonProperty("name") String name, @JsonProperty("url") String url)
+    public Price(@JsonProperty("id") long id, @JsonProperty("name") String name, @JsonProperty("url") String url)
     {
         this.id = id;
         this.name = name;
         this.url = url;
     }
-    
+
     @Override
     public String getFilterId()
     {
-        return "b" + getId();
+        return "p" + getId();
     }
-
+    
     /**
-     * Returns the unique identifier of the brand
+     * Returns the unique identifier of this price range
      */
     public long getId()
     {
@@ -32,7 +35,7 @@ public class Brand implements SearchFilter
     }
 
     /**
-     * Returns the display name of the brand
+     * Returns the display name of this price range
      */
     public String getName()
     {
@@ -40,8 +43,8 @@ public class Brand implements SearchFilter
     }
 
     /**
-     * Returns the URL of the search page on POPSUGAR Shopping displaying all the products from that
-     * brand
+     * Returns the URL of the search page on POPSUGAR Shopping displaying all the products matching
+     * this price range
      */
     public String getUrl()
     {

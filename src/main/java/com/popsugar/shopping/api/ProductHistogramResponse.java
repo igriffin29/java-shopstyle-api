@@ -6,6 +6,8 @@ public class ProductHistogramResponse
     private BrandHistogramEntry[] brandHistogram;
     private CategoryHistogramEntry[] categoryHistogram;
     private ColorHistogramEntry[] colorHistogram;
+    private DiscountHistogramEntry[] discountHistogram;
+    private PriceHistogramEntry[] priceHistogram;
     private RetailerHistogramEntry[] retailerHistogram;
     private SizeHistogramEntry[] sizeHistogram;
 
@@ -42,6 +44,26 @@ public class ProductHistogramResponse
     public void setColorHistogram(ColorHistogramEntry[] colorHistogram)
     {
         this.colorHistogram = colorHistogram;
+    }
+    
+    public DiscountHistogramEntry[] getDiscountHistogram()
+    {
+        return discountHistogram;
+    }
+    
+    public void setDiscountHistogram(DiscountHistogramEntry[] discountHistogram)
+    {
+        this.discountHistogram = discountHistogram;
+    }
+    
+    public PriceHistogramEntry[] getPriceHistogram()
+    {
+        return priceHistogram;
+    }
+    
+    public void setPriceHistogram(PriceHistogramEntry[] priceHistogram)
+    {
+        this.priceHistogram = priceHistogram;
     }
     
     public RetailerHistogramEntry[] getRetailerHistogram()
