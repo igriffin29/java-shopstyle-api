@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.popsugar.shopping.bo.Category;
 import com.popsugar.shopping.bo.Product;
-import com.popsugar.shopping.bo.SearchFilter;
 
 public class PopSugarShopping
 {
@@ -144,11 +143,11 @@ public class PopSugarShopping
         return call("/products", parameters, ProductSearchResponse.class);
     }
     
-    public ProductHistogramResponse getProductsHistogram(ProductQuery query, Class<? extends SearchFilter>... filters) throws APIException
+    public ProductHistogramResponse getProductsHistogram(ProductQuery query, Class... filters) throws APIException
     {
         List<NameValuePair> parameters = new ArrayList<NameValuePair>();
         StringBuilder filtersString = new StringBuilder();
-        for (Class<? extends SearchFilter> filter : filters) {
+        for (Class filter : filters) {
             if (filtersString.length() > 0) {
                 filtersString.append(',');
             }
