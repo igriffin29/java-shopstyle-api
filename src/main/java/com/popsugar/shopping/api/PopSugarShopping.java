@@ -1,20 +1,39 @@
 package com.popsugar.shopping.api;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,15 +82,26 @@ public class PopSugarShopping
      * Hostname for the POPSUGAR Shopping Canada end point
      */
     public static final String CA_API_HOSTNAME = "api.shopstyle.ca";
-    
+
+    /**
+     * Constant to use with {@link PopSugarShopping#setLocales(String[])} to request
+     * the results for all the possible locales.
+     */
+    public static final String[] ALL_LOCALES = {"all"};
+
+    protected static final Charset UTF8Charset = Charset.forName("UTF-8");
+    protected static final ContentType JSONContentType = ContentType.APPLICATION_JSON;
+
     private final String scheme = "http";
     private final String host;
-    private final int port = 80;
+    private int port = 80;
     private final String pathPrefix;
     private final String partnerId;
-    
+
     private HttpClient httpClient;
+    private String[] locales;
     private ObjectMapper mapper;
+    private String secretKey;
 
     public PopSugarShopping(String partnerId)
     {
@@ -90,14 +120,15 @@ public class PopSugarShopping
         this.pathPrefix = "/api/v" + version;
         configure();
     }
-    
+
     private void configure()
     {
         this.httpClient = new DefaultHttpClient();
         this.mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
     }
-    
+
     public void close()
     {
         if (httpClient != null) {
@@ -112,11 +143,50 @@ public class PopSugarShopping
         }
     }
 
+    /**
+     * Changes the HTTP port used by the client. Default is 80
+     * @param newPort the new port number to use by this API clients
+     */
+    public void setPort(int newPort)
+    {
+        if (newPort <= 0) {
+            throw new IllegalArgumentException("Invalid port: " + newPort);
+        }
+        this.port = newPort;
+    }
+
+    /**
+     * Sets the list of locales of the results to be returned by the API calls.
+     *
+     * For the api calls made to the non-US end point, the default behavior is to only
+     * return the results that match the locale of the end point. However one can also retrieve
+     * the results for other locales as well. For instance, by default {@link #getProducts(ProductQuery)} will
+     * only return canadian products if the end point is {@link #CA_API_HOSTNAME canadian one}. But if the locales
+     * include "en_US" the US products available via this end point will also be returned.
+     *
+     * To retrieve all the available products, one can use {@link #ALL_LOCALES}.
+     */
+    public void setLocales(String[] locales)
+    {
+        if (locales == null || locales.length == 0) {
+            this.locales = null;
+        }
+        this.locales = locales;
+    }
+
+    /**
+     * Sets the secret key used to authenticate secure API Calls
+     */
+    public void setSecretKey(String secretKey)
+    {
+        this.secretKey = secretKey;
+    }
+
     public Product getProduct(long productId) throws APIException
     {
-        return call("/products/" + productId, null, Product.class);
+        return callGet("/products/" + productId, null, Product.class);
     }
-    
+
     public ProductSearchResponse getProducts(ProductQuery request) throws APIException
     {
         return getProducts(request, 0, 0, null);
@@ -140,9 +210,9 @@ public class PopSugarShopping
             parameters.add(new BasicNameValuePair("sort", sort.name()));
         }
         query.addParameters(parameters);
-        return call("/products", parameters, ProductSearchResponse.class);
+        return callGet("/products", parameters, ProductSearchResponse.class);
     }
-    
+
     public ProductHistogramResponse getProductsHistogram(ProductQuery query, Class... filters) throws APIException
     {
         List<NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -155,14 +225,14 @@ public class PopSugarShopping
         }
         parameters.add(new BasicNameValuePair("filters", filtersString.toString()));
         query.addParameters(parameters);
-        return call("/products/histogram", parameters, ProductHistogramResponse.class);
+        return callGet("/products/histogram", parameters, ProductHistogramResponse.class);
     }
-    
+
     public BrandListResponse getBrands() throws APIException
     {
-        return call("/brands", null, BrandListResponse.class);
+        return callGet("/brands", null, BrandListResponse.class);
     }
-    
+
     public CategoryListResponse getCategories(Category root, int depth) throws APIException
     {
         return getCategories(root == null ? null : root.getId(), depth);
@@ -177,28 +247,151 @@ public class PopSugarShopping
         if (depth > 0) {
             parameters.add(new BasicNameValuePair("depth", String.valueOf(depth)));
         }
-        return call("/categories", parameters, CategoryListResponse.class);
-    }
-        
-    public ColorListResponse getColors() throws APIException
-    {
-        return call("/colors", null, ColorListResponse.class);
-    }
-    
-    public RetailerListResponse getRetailers() throws APIException
-    {
-        return call("/retailers", null, RetailerListResponse.class);
+        return callGet("/categories", parameters, CategoryListResponse.class);
     }
 
-    private <T> T call(String requestPath, List<NameValuePair> parameters, Class<T> responseType) throws APIException
+    public ColorListResponse getColors() throws APIException
     {
-        if (httpClient == null) {
-            throw new IllegalStateException("Client was closed");
+        return callGet("/colors", null, ColorListResponse.class);
+    }
+
+    public RetailerListResponse getRetailers() throws APIException
+    {
+        return callGet("/retailers", null, RetailerListResponse.class);
+    }
+
+    public void downloadTransactions(Date startDate, Date endDate, File destination)
+        throws APIException
+    {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+        parameters.add(new BasicNameValuePair("start", dateFormat.format(startDate)));
+        parameters.add(new BasicNameValuePair("end", dateFormat.format(endDate)));
+        download("/partner/transactions", parameters, destination);
+    }
+
+    protected <T> T callGet(String requestPath, List<NameValuePair> parameters,
+        Class<T> responseType) throws APIException
+    {
+        URI uri = getCallURI(requestPath, parameters);
+        HttpGet get = new HttpGet(uri);
+        return call(get, responseType);
+    }
+
+    protected <T> T secureCallGet(String requestPath, List<NameValuePair> parameters,
+        Class<T> responseType, String userId) throws APIException
+    {
+        URI uri = getCallURI(requestPath, parameters);
+        HttpGet get = new HttpGet(uri);
+        addSecureHeader(get, userId, null);
+        return call(get, responseType);
+    }
+
+    protected <T> T callPost(String requestPath, List<NameValuePair> queryParameters,
+        Object postDetails, Class<T> responseType) throws APIException
+    {
+        URI uri = getCallURI(requestPath, queryParameters);
+        HttpPost post = new HttpPost(uri);
+        addJsonEntity(post, postDetails);
+        return call(post, responseType);
+    }
+
+    protected <T> T secureCallPost(String requestPath, List<NameValuePair> queryParameters,
+        Object postDetails, Class<T> responseType, String userId)
+        throws APIException
+    {
+        URI uri = getCallURI(requestPath, queryParameters);
+        HttpPost post = new HttpPost(uri);
+        String jsonBody = addJsonEntity(post, postDetails);
+        addSecureHeader(post, userId, jsonBody);
+        return call(post, responseType);
+    }
+
+    protected <T> T callPut(String requestPath, List<NameValuePair> queryParameters,
+        Object postDetails, Class<T> responseType) throws APIException
+    {
+        URI uri = getCallURI(requestPath, queryParameters);
+        HttpPut put = new HttpPut(uri);
+        addJsonEntity(put, postDetails);
+        return call(put, responseType);
+    }
+
+    protected <T> T secureCallPut(String requestPath, List<NameValuePair> queryParameters,
+        Object postDetails, Class<T> responseType, String userId)
+        throws APIException
+    {
+        URI uri = getCallURI(requestPath, queryParameters);
+        HttpPut put = new HttpPut(uri);
+        String jsonBody = addJsonEntity(put, postDetails);
+        addSecureHeader(put, userId, jsonBody);
+        return call(put, responseType);
+    }
+
+    private String getAuthorizationToken(String userId, String formattedDate)
+    {
+        try {
+            MessageDigest hasher = MessageDigest.getInstance("SHA");
+            hasher.update(Hex.decodeHex(secretKey.toCharArray()));
+            hasher.update(partnerId.getBytes(UTF8Charset));
+            if (userId != null) {
+                hasher.update(userId.getBytes(UTF8Charset));
+            }
+            hasher.update(formattedDate.getBytes(UTF8Charset));
+            String token = new String(Base64.encodeBase64(hasher.digest()));
+            if (userId == null) {
+                return token;
+            }
+            else {
+                return userId + ":" + token;
+            }
         }
+        catch (NoSuchAlgorithmException exp) {
+            throw new RuntimeException(exp);
+        }
+        catch (DecoderException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String addJsonEntity(HttpEntityEnclosingRequestBase request, Object bodyDetails)
+        throws APIException
+    {
+        String jsonBody;
+        if (bodyDetails != null) {
+            try {
+                jsonBody = mapper.writeValueAsString(bodyDetails);
+            }
+            catch (JsonProcessingException e) {
+                throw new APIException("Unable to serialize the request", e);
+            }
+        }
+        else {
+            jsonBody = "{}";
+        }
+        request.setEntity(new StringEntity(jsonBody, JSONContentType));
+        return jsonBody;
+    }
+
+    /**
+     * Creates a new API URI
+     *
+     * @param requestPath the path specific to the API call (i.e. /products to search products)
+     * @param parameters the parameter specific to the API call (i.e. cat=dresses)
+     * @return the absolute URI needed to make the API call.
+     * @throws APIException if an error occurred when generating the URI. Unlikely to happen
+     */
+    protected final URI getCallURI(String requestPath, List<NameValuePair> parameters)
+        throws APIException
+    {
         URIBuilder uriBuilder = new URIBuilder();
         uriBuilder.setScheme(scheme).setHost(host).setPort(port);
         uriBuilder.setPath(pathPrefix + requestPath);
         uriBuilder.addParameter("pid", partnerId);
+        if (locales != null) {
+            for (String localeName : locales) {
+                uriBuilder.addParameter("locales", localeName);
+            }
+        }
         if (parameters != null && !parameters.isEmpty()) {
             for (NameValuePair parameter : parameters) {
                 uriBuilder.addParameter(parameter.getName(), parameter.getValue());
@@ -212,17 +405,24 @@ public class PopSugarShopping
             // unlikely to happen
             throw new APIException("Error while building URI", e);
         }
-        
-        HttpGet get = new HttpGet(uri);
+        return uri;
+    }
+
+    protected final <T> T call(HttpRequestBase get, Class<T> responseType) throws APIException
+    {
+        if (httpClient == null) {
+            throw new IllegalStateException("Client was closed");
+        }
         HttpResponse response;
         try {
             response = httpClient.execute(get);
         }
         catch (Exception e) {
-            throw new APIException("Error while executing call to " + uri, e);
+            throw new APIException("Error while executing call to " + get.getURI(), e);
         }
         try {
-            if (response.getStatusLine().getStatusCode() != 200) {
+            int responseCode = response.getStatusLine().getStatusCode();
+            if (responseCode < 200 || responseCode >= 300) {
                 // handle the error case
                 HttpEntity errorResponse = response.getEntity();
                 JsonNode errorDescription = mapper.readTree(errorResponse.getContent());
@@ -252,7 +452,85 @@ public class PopSugarShopping
         }
     }
 
-    
+    protected void download(String requestPath, List<NameValuePair> queryParameters,
+        File destination) throws APIException
+    {
+        File destinationDirectory = destination.getParentFile();
+        if (!destinationDirectory.isDirectory()) {
+            if (destinationDirectory.exists()) {
+                throw new APIException(destinationDirectory + " is not a directory!");
+            }
+            else {
+                // create the directory
+                if (!destinationDirectory.mkdirs()) {
+                    throw new APIException("Error creating " + destinationDirectory);
+                }
+            }
+        }
+
+        URI uri = getCallURI(requestPath, queryParameters);
+        HttpGet get = new HttpGet(uri);
+        addSecureHeader(get, null, null);
+
+        if (httpClient == null) {
+            throw new IllegalStateException("Client was closed");
+        }
+        HttpResponse response;
+        try {
+            response = httpClient.execute(get);
+        }
+        catch (Exception e) {
+            throw new APIException("Error while executing call to " + get.getURI(), e);
+        }
+        try {
+            int responseCode = response.getStatusLine().getStatusCode();
+            if (responseCode < 200 || responseCode >= 300) {
+                // handle the error case
+                HttpEntity errorResponse = response.getEntity();
+                JsonNode errorDescription = mapper.readTree(errorResponse.getContent());
+                JsonNode errorMessage = errorDescription.get("errorMessage");
+                if (errorMessage == null || errorMessage.isNull()) {
+                    throw new APIException("Undescribed error: " + errorDescription);
+                }
+                else {
+                    throw new APIException(errorMessage.asText());
+                }
+            }
+            else {
+                // handle successful response
+                HttpEntity successResponse = response.getEntity();
+                IOUtils.copy(successResponse.getContent(), new FileOutputStream(destination));
+            }
+        }
+        catch (APIException e) {
+            // pass through
+            throw e;
+        }
+        catch (Exception e) {
+            throw new APIException("Error while processing response", e);
+        }
+        finally {
+            get.releaseConnection();
+        }
+    }
+
+    protected void addSecureHeader(HttpRequestBase request, String userId,
+        String body)
+    {
+        if (secretKey == null || secretKey.length() == 0) {
+            throw new IllegalStateException("The secret key must be set!");
+        }
+
+        // Add the Date header
+        Date requestDate = new Date();
+        String formattedDate = DateUtils.formatDate(requestDate);
+        request.addHeader("Date", formattedDate);
+
+        // Add the Authorization header
+        String authorizationToken = getAuthorizationToken(userId, formattedDate);
+        request.addHeader("Authorization", "SHPST " + authorizationToken);
+    }
+
     @SuppressWarnings("serial")
     public static class APIException extends Exception
     {

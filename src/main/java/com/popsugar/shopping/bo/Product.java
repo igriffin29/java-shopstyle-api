@@ -9,17 +9,22 @@ public class Product
     private long id;
     private String name;
     private Currency currency;
+    private Currency nativeCurrency;
     private double price;
     private String priceLabel;
+    private double nativePrice;
+    private String nativePriceLabel;
     private double salePrice;
     private String salePriceLabel;
+    private double nativeSalePrice;
+    private String nativeSalePriceLabel;
     private boolean inStock;
     private Retailer retailer;
     private Locale locale;
     private String description;
     private Brand brand;
     private String clickUrl;
-    private Image[] images;
+    private Image image;
     private ProductColor[] colors;
     private ProductSize[] sizes;
     private Category[] categories;
@@ -97,6 +102,75 @@ public class Product
         this.salePriceLabel = salePriceLabel;
     }
 
+    /**
+     * Returns the currency used on the retailer's site
+     */
+    public Currency getNativeCurrency()
+    {
+        return nativeCurrency;
+    }
+
+    public void setNativeCurrency(Currency nativeCurrency)
+    {
+        this.nativeCurrency = nativeCurrency;
+    }
+
+    /**
+     * Returns the {@link #getPrice() price} converted into the {@link #getNativeCurrency() native
+     * currency} or 0 if there is no need to convert it.
+     */
+    public double getNativePrice()
+    {
+        return nativePrice;
+    }
+
+    public void setNativePrice(double nativePrice)
+    {
+        this.nativePrice = nativePrice;
+    }
+
+    /**
+     * Returns the formatted {@link #getNativePrice() native price} or null if the
+     * {@link #getNativeCurrency() native currency} isn't set
+     */
+    public String getNativePriceLabel()
+    {
+        return nativePriceLabel;
+    }
+
+    public void setNativePriceLabel(String nativePriceLabel)
+    {
+        this.nativePriceLabel = nativePriceLabel;
+    }
+
+    /**
+     * Return the {@link #getSalePrice() sale price} converted into the the
+     * {@link #getNativeCurrency() native currency} or 0 if there is no need to convert it.
+     */
+    public double getNativeSalePrice()
+    {
+        return nativeSalePrice;
+    }
+
+    public void setNativeSalePrice(double nativeSalePrice)
+    {
+        this.nativeSalePrice = nativeSalePrice;
+    }
+
+    /**
+     * Returns the formatted {@link #getNativeSalePrice() native sale price} or null if the
+     * {@link #getNativeCurrency() native currency} isn't set
+     */
+    public String getNativeSalePriceLabel()
+    {
+        return nativeSalePriceLabel;
+    }
+
+    public void setNativeSalePriceLabel(String nativeSalePriceLabel)
+    {
+        this.nativeSalePriceLabel = nativeSalePriceLabel;
+    }
+
     public boolean isInStock()
     {
         return inStock;
@@ -157,14 +231,14 @@ public class Product
         this.clickUrl = clickUrl;
     }
 
-    public Image[] getImages()
+    public Image getImage()
     {
-        return images;
+        return image;
     }
 
-    public void setImages(Image[] images)
+    public void setImage(Image image)
     {
-        this.images = images;
+        this.image = image;
     }
 
     public ProductColor[] getColors()
@@ -225,5 +299,5 @@ public class Product
     public void setExtractDate(Date extractDate)
     {
         this.extractDate = extractDate;
-    }    
+    }
 }

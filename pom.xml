@@ -4,7 +4,7 @@
 
   <groupId>com.popsugar</groupId>
   <artifactId>java-popsugar-shopping-api</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>java-popsugar-shopping-api</name>
@@ -46,6 +46,11 @@
   		<groupId>com.fasterxml.jackson.core</groupId>
   		<artifactId>jackson-databind</artifactId>
   		<version>2.1.3</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>commons-io</groupId>
+  		<artifactId>commons-io</artifactId>
+  		<version>2.4</version>
   	</dependency>
   </dependencies>
 </project>
