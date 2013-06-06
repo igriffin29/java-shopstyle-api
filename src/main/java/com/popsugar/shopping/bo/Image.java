@@ -1,71 +1,39 @@
 package com.popsugar.shopping.bo;
 
+import java.util.Map;
+
 /**
  * Wrapper around a specific image URL, providing metadata about the actual image. For a given
- * product, the same picture will be available in different sizes. Each size has its own Image
- * object
+ * product, the same picture will be available in different {@link #getSizes() sizes}.
  */
 public class Image
 {
-    public enum SizeName {
-        Small, Medium, Large, XLarge, Original, IPhoneSmall, IPhone
-    }
-
-    private SizeName sizeName;
-    private int width;
-    private int height;
-    private String url;
+    private String id;
+    private Map<ImageSize.SizeName, ImageSize> sizes;
 
     /**
-     * Returns the name of the size of this image.
+     * Returns the unique identifier of an image
      */
-    public SizeName getSizeName()
+    public String getId()
     {
-        return sizeName;
+        return id;
     }
 
-    public void setSizeName(SizeName sizeName)
+    public void setId(String id)
     {
-        this.sizeName = sizeName;
+        this.id = id;
     }
 
     /**
-     * Returns the maximum width of the image. Currently this is NOT the actual width of the image
+     * Returns a map of all the size variations keyed by the {@link ImageSize.SizeName size name}
      */
-    public int getWidth()
+    public Map<ImageSize.SizeName, ImageSize> getSizes()
     {
-        return width;
+        return sizes;
     }
 
-    public void setWidth(int width)
+    public void setSizes(Map<ImageSize.SizeName, ImageSize> sizes)
     {
-        this.width = width;
+        this.sizes = sizes;
     }
-
-    /**
-     * Returns the maximum height of the image. Currently this is NOT the actual height of the image
-     */
-    public int getHeight()
-    {
-        return height;
-    }
-
-    public void setHeight(int height)
-    {
-        this.height = height;
-    }
-
-    /**
-     * Returns the URL of the image file
-     */
-    public String getUrl()
-    {
-        return url;
-    }
-
-    public void setUrl(String url)
-    {
-        this.url = url;
-    }
-
 }

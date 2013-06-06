@@ -12,20 +12,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ProductColor
 {
     private final String name;
-    private final Image[] images;
+    private final Image image;
     private final String swatchUrl;
     private final Color[] canonicalColors;
 
     @JsonCreator
-    public ProductColor(@JsonProperty("name") String name, @JsonProperty("images") Image[] images, 
-        @JsonProperty("swatchUrl") String swatch, @JsonProperty("canonicalColors") Color[] canonicalColors)
+    public ProductColor(@JsonProperty("name")
+    String name, @JsonProperty("image")
+    Image image, @JsonProperty("swatchUrl")
+    String swatch, @JsonProperty("canonicalColors")
+    Color[] canonicalColors)
     {
         this.name = name;
-        this.images = images;
+        this.image = image;
         this.swatchUrl = swatch;
         this.canonicalColors = canonicalColors;
     }
-    
+
     /**
      * Returns the retailer's name for this color
      */
@@ -35,11 +38,11 @@ public class ProductColor
     }
 
     /**
-     * Returns the set of images for this particular color
+     * Returns the image for this particular color
      */
-    public Image[] getImages()
+    public Image getImage()
     {
-        return images;
+        return image;
     }
 
     public String getSwatchUrl()
@@ -48,7 +51,7 @@ public class ProductColor
     }
 
     /**
-     * Returns the normalized colors for this color. 
+     * Returns the normalized colors for this color.
      */
     public Color[] getCanonicalColors()
     {
