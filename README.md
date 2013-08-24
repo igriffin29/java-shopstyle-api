@@ -1,11 +1,11 @@
-java-popsugar-shopping-api
+java-shopstyle-api
 ==========================
 
-Java POPSUGAR Shopping API.
+Java ShopStyle API.
 
 Sample code:
 
-    PopSugarShopping api = new PopSugarShopping("YOUR_KEY");
+    ShopStyle api = new ShopStyle("YOUR_KEY");
     ProductQuery query = new ProductQuery().withFreeText("red dresses");
     ProductSearchResponse response = api.getProducts(query);
     for (Product product : response.getProducts()) {

@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.popsugar</groupId>
-  <artifactId>java-popsugar-shopping-api</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <artifactId>java-shopstyle-api</artifactId>
+  <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>java-popsugar-shopping-api</name>
@@ -30,7 +30,7 @@
   	<name>POPSUGAR Inc.</name>
   	<url>corp.popsugar.com</url>
   </organization>
-  <description>Java Client for POPSUGAR Shopping REST API</description>
+  <description>Java Client for ShopStyle REST API</description>
   <dependencies>
   	<dependency>
   		<groupId>com.fasterxml.jackson.core</groupId>
@@ -53,4 +53,9 @@
   		<version>2.4</version>
   	</dependency>
   </dependencies>
+  <parent>
+  	<groupId>com.popsugar</groupId>
+  	<artifactId>shopstyle-api</artifactId>
+  	<version>1.0-SNAPSHOT</version>
+  </parent>
 </project>
