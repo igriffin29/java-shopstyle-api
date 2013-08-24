@@ -6,7 +6,7 @@ package com.shopstyle.bo;
 public class ImageSize
 {
     public enum SizeName {
-        Small, Medium, Large, XLarge, Original, IPhoneSmall, IPhone
+        Small, Medium, Large, XLarge, Original, IPhoneSmall, IPhone, Best
     }
 
     private SizeName sizeName;

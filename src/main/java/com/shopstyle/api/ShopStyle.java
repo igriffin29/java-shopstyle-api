@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopstyle.bo.Category;
 import com.shopstyle.bo.Product;
+import com.shopstyle.bo.User;
 
 public class ShopStyle
 {
@@ -189,22 +190,19 @@ public class ShopStyle
 
     public ProductSearchResponse getProducts(ProductQuery request) throws APIException
     {
-        return getProducts(request, 0, 0, null);
+        return getProducts(request, null, null);
     }
 
-    public ProductSearchResponse getProducts(ProductQuery request, int offset, int limit) throws APIException
+    public ProductSearchResponse getProducts(ProductQuery request, PageRequest page) throws APIException
     {
-        return getProducts(request, offset, limit, null);
+        return getProducts(request, page, null);
     }
 
-    public ProductSearchResponse getProducts(ProductQuery query, int offset, int limit, ProductSort sort) throws APIException
+    public ProductSearchResponse getProducts(ProductQuery query, PageRequest page, ProductSort sort) throws APIException
     {
         List<NameValuePair> parameters = new ArrayList<NameValuePair>();
-        if (offset > 0) {
-            parameters.add(new BasicNameValuePair("offset", String.valueOf(offset)));
-        }
-        if (limit > 0) {
-            parameters.add(new BasicNameValuePair("limit", String.valueOf(limit)));
+        if (page != null) {
+        	page.addParameters(parameters);
         }
         if (sort != null && sort != ProductSort.Relevance) {
             parameters.add(new BasicNameValuePair("sort", sort.name()));
@@ -228,10 +226,18 @@ public class ShopStyle
         return callGet("/products/histogram", parameters, ProductHistogramResponse.class);
     }
 
+    // ----------------------
+    // ----- Brand APIs -----
+    // ----------------------
+
     public BrandListResponse getBrands() throws APIException
     {
         return callGet("/brands", null, BrandListResponse.class);
     }
+
+    // -------------------------
+    // ----- Category APIs -----
+    // -------------------------
 
     public CategoryListResponse getCategories(Category root, int depth) throws APIException
     {
@@ -250,15 +256,50 @@ public class ShopStyle
         return callGet("/categories", parameters, CategoryListResponse.class);
     }
 
+    // ----------------------
+    // ----- Color APIs -----
+    // ----------------------
+
     public ColorListResponse getColors() throws APIException
     {
         return callGet("/colors", null, ColorListResponse.class);
     }
 
+    // -------------------------
+    // ----- Retailer APIs -----
+    // -------------------------
+
     public RetailerListResponse getRetailers() throws APIException
     {
         return callGet("/retailers", null, RetailerListResponse.class);
     }
+
+    // ---------------------
+    // ----- User APIs -----
+    // ---------------------
+
+    public User getUser(String userId) throws APIException
+    {
+        return callGet("/users/" + userId, null, User.class);
+    }
+
+    // -------------------------
+    // ----- Favorite APIs -----
+    // -------------------------
+
+    public FavoriteListResponse getFavorites(User user, PageRequest page) throws APIException
+    {
+        List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+        parameters.add(new BasicNameValuePair("userId", user.getId()));
+        if (page != null) {
+        	page.addParameters(parameters);
+        }
+        return callGet("/favorites", parameters, FavoriteListResponse.class);
+    }
+
+    // ------------------------
+    // ----- Partner APIs -----
+    // ------------------------
 
     public void downloadTransactions(Date startDate, Date endDate, File destination)
         throws APIException
