@@ -20,6 +20,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -85,10 +86,10 @@ public class ShopStyle
     public static final String CA_API_HOSTNAME = "api.shopstyle.ca";
 
     /**
-     * Constant to use with {@link ShopStyle#setLocales(String[])} to request
-     * the results for all the possible locales.
+     * Constant to use with {@link ShopStyle#setLocales(String[])} to request the results for all
+     * the possible locales.
      */
-    public static final String[] ALL_LOCALES = {"all"};
+    public static final String[] ALL_LOCALES = { "all" };
 
     protected static final Charset UTF8Charset = Charset.forName("UTF-8");
     protected static final ContentType JSONContentType = ContentType.APPLICATION_JSON;
@@ -117,17 +118,16 @@ public class ShopStyle
     public ShopStyle(String partnerId, String hostname, int version)
     {
         this.partnerId = partnerId;
-        this.host = hostname;
-        this.pathPrefix = "/api/v" + version;
+        host = hostname;
+        pathPrefix = "/api/v" + version;
         configure();
     }
 
     private void configure()
     {
-        this.httpClient = new DefaultHttpClient();
-        this.mapper = new ObjectMapper();
+        httpClient = new DefaultHttpClient();
+        mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     }
 
     public void close()
@@ -146,6 +146,7 @@ public class ShopStyle
 
     /**
      * Changes the HTTP port used by the client. Default is 80
+     * 
      * @param newPort the new port number to use by this API clients
      */
     public void setPort(int newPort)
@@ -153,18 +154,19 @@ public class ShopStyle
         if (newPort <= 0) {
             throw new IllegalArgumentException("Invalid port: " + newPort);
         }
-        this.port = newPort;
+        port = newPort;
     }
 
     /**
      * Sets the list of locales of the results to be returned by the API calls.
-     *
-     * For the api calls made to the non-US end point, the default behavior is to only
-     * return the results that match the locale of the end point. However one can also retrieve
-     * the results for other locales as well. For instance, by default {@link #getProducts(ProductQuery)} will
-     * only return canadian products if the end point is {@link #CA_API_HOSTNAME canadian one}. But if the locales
-     * include "en_US" the US products available via this end point will also be returned.
-     *
+     * 
+     * For the api calls made to the non-US end point, the default behavior is to only return the
+     * results that match the locale of the end point. However one can also retrieve the results for
+     * other locales as well. For instance, by default {@link #getProducts(ProductQuery)} will only
+     * return canadian products if the end point is {@link #CA_API_HOSTNAME canadian one}. But if
+     * the locales include "en_US" the US products available via this end point will also be
+     * returned.
+     * 
      * To retrieve all the available products, one can use {@link #ALL_LOCALES}.
      */
     public void setLocales(String[] locales)
@@ -193,16 +195,18 @@ public class ShopStyle
         return getProducts(request, null, null);
     }
 
-    public ProductSearchResponse getProducts(ProductQuery request, PageRequest page) throws APIException
+    public ProductSearchResponse getProducts(ProductQuery request, PageRequest page)
+        throws APIException
     {
         return getProducts(request, page, null);
     }
 
-    public ProductSearchResponse getProducts(ProductQuery query, PageRequest page, ProductSort sort) throws APIException
+    public ProductSearchResponse getProducts(ProductQuery query, PageRequest page, ProductSort sort)
+        throws APIException
     {
         List<NameValuePair> parameters = new ArrayList<NameValuePair>();
         if (page != null) {
-        	page.addParameters(parameters);
+            page.addParameters(parameters);
         }
         if (sort != null && sort != ProductSort.Relevance) {
             parameters.add(new BasicNameValuePair("sort", sort.name()));
@@ -211,7 +215,8 @@ public class ShopStyle
         return callGet("/products", parameters, ProductSearchResponse.class);
     }
 
-    public ProductHistogramResponse getProductsHistogram(ProductQuery query, Class... filters) throws APIException
+    public ProductHistogramResponse getProductsHistogram(ProductQuery query, Class... filters)
+        throws APIException
     {
         List<NameValuePair> parameters = new ArrayList<NameValuePair>();
         StringBuilder filtersString = new StringBuilder();
@@ -292,7 +297,7 @@ public class ShopStyle
         List<NameValuePair> parameters = new ArrayList<NameValuePair>();
         parameters.add(new BasicNameValuePair("userId", user.getId()));
         if (page != null) {
-        	page.addParameters(parameters);
+            page.addParameters(parameters);
         }
         return callGet("/favorites", parameters, FavoriteListResponse.class);
     }
@@ -338,8 +343,7 @@ public class ShopStyle
     }
 
     protected <T> T secureCallPost(String requestPath, List<NameValuePair> queryParameters,
-        Object postDetails, Class<T> responseType, String userId)
-        throws APIException
+        Object postDetails, Class<T> responseType, String userId) throws APIException
     {
         URI uri = getCallURI(requestPath, queryParameters);
         HttpPost post = new HttpPost(uri);
@@ -358,14 +362,22 @@ public class ShopStyle
     }
 
     protected <T> T secureCallPut(String requestPath, List<NameValuePair> queryParameters,
-        Object postDetails, Class<T> responseType, String userId)
-        throws APIException
+        Object postDetails, Class<T> responseType, String userId) throws APIException
     {
         URI uri = getCallURI(requestPath, queryParameters);
         HttpPut put = new HttpPut(uri);
         String jsonBody = addJsonEntity(put, postDetails);
         addSecureHeader(put, userId, jsonBody);
         return call(put, responseType);
+    }
+
+    protected void secureCallDelete(String requestPath, List<NameValuePair> queryParameters,
+        String userId) throws APIException
+    {
+        URI uri = getCallURI(requestPath, queryParameters);
+        HttpDelete delete = new HttpDelete(uri);
+        addSecureHeader(delete, userId, null);
+        call(delete, null);
     }
 
     private String getAuthorizationToken(String userId, String formattedDate)
@@ -397,20 +409,20 @@ public class ShopStyle
     private String addJsonEntity(HttpEntityEnclosingRequestBase request, Object bodyDetails)
         throws APIException
     {
-        String jsonBody;
         if (bodyDetails != null) {
+            String jsonBody;
             try {
                 jsonBody = mapper.writeValueAsString(bodyDetails);
             }
             catch (JsonProcessingException e) {
                 throw new APIException("Unable to serialize the request", e);
             }
+            request.setEntity(new StringEntity(jsonBody, JSONContentType));
+            return jsonBody;
         }
         else {
-            jsonBody = "{}";
+            return null;
         }
-        request.setEntity(new StringEntity(jsonBody, JSONContentType));
-        return jsonBody;
     }
 
     /**
@@ -477,8 +489,14 @@ public class ShopStyle
             }
             else {
                 // handle successful response
-                HttpEntity successResponse = response.getEntity();
-                return mapper.readValue(successResponse.getContent(), responseType);
+                if (responseType != null) {
+                    // If the client expects a non-empty response, parse it into an object
+                    HttpEntity successResponse = response.getEntity();
+                    return mapper.readValue(successResponse.getContent(), responseType);
+                }
+                else {
+                    return null;
+                }
             }
         }
         catch (APIException e) {
@@ -555,8 +573,7 @@ public class ShopStyle
         }
     }
 
-    protected void addSecureHeader(HttpRequestBase request, String userId,
-        String body)
+    protected void addSecureHeader(HttpRequestBase request, String userId, String body)
     {
         if (secretKey == null || secretKey.length() == 0) {
             throw new IllegalStateException("The secret key must be set!");
