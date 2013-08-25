@@ -146,7 +146,7 @@ public class ShopStyle
 
     /**
      * Changes the HTTP port used by the client. Default is 80
-     * 
+     *
      * @param newPort the new port number to use by this API clients
      */
     public void setPort(int newPort)
@@ -159,14 +159,14 @@ public class ShopStyle
 
     /**
      * Sets the list of locales of the results to be returned by the API calls.
-     * 
+     *
      * For the api calls made to the non-US end point, the default behavior is to only return the
      * results that match the locale of the end point. However one can also retrieve the results for
      * other locales as well. For instance, by default {@link #getProducts(ProductQuery)} will only
      * return canadian products if the end point is {@link #CA_API_HOSTNAME canadian one}. But if
      * the locales include "en_US" the US products available via this end point will also be
      * returned.
-     * 
+     *
      * To retrieve all the available products, one can use {@link #ALL_LOCALES}.
      */
     public void setLocales(String[] locales)
@@ -277,6 +277,24 @@ public class ShopStyle
     public RetailerListResponse getRetailers() throws APIException
     {
         return callGet("/retailers", null, RetailerListResponse.class);
+    }
+
+    // ---------------------
+    // ----- Size APIs -----
+    // ---------------------
+
+    public SizeListResponse getSizes(Category category) throws APIException
+    {
+        assert category != null;
+        return getSizes(category.getId());
+    }
+
+    public SizeListResponse getSizes(String categoryId) throws APIException
+    {
+        assert categoryId != null;
+        List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+        parameters.add(new BasicNameValuePair("cat", categoryId));
+        return callGet("/sizes", parameters, SizeListResponse.class);
     }
 
     // ---------------------
