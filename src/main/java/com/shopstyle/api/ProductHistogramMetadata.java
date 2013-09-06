@@ -1,6 +1,18 @@
 package com.shopstyle.api;
 
-public class ProductHistogramMetadata extends ProductQueryMetadata
-{
+import com.shopstyle.bo.Category;
 
+public class ProductHistogramMetadata
+{
+    private Category category;
+
+    public Category getCategory()
+    {
+        return category;
+    }
+
+    public void setCategory(Category category)
+    {
+        this.category = category;
+    }
 }

@@ -1,41 +1,19 @@
 package com.shopstyle.api;
 
+import com.shopstyle.bo.Category;
 
-public class ProductSearchMetadata extends ProductQueryMetadata
+
+public class ProductSearchMetadata extends PaginatedMetadata
 {
-    private int offset;
-    private int limit;
-    private int total;
+    private Category category;
 
-    public int getOffset()
+    public Category getCategory()
     {
-        return offset;
+        return category;
     }
 
-    public void setOffset(int offset)
+    public void setCategory(Category category)
     {
-        this.offset = offset;
+        this.category = category;
     }
-
-    public int getLimit()
-    {
-        return limit;
-    }
-
-    public void setLimit(int limit)
-    {
-        this.limit = limit;
-    }
-
-    public int getTotal()
-    {
-        return total;
-    }
-
-    public void setTotal(int total)
-    {
-        this.total = total;
-    }
-
-
 }
