@@ -30,8 +30,9 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -97,6 +98,7 @@ public class ShopStyle
     private final String scheme = "http";
     private final String host;
     private int port = 80;
+    private final int connectionPoolSize = 100;
     private final String pathPrefix;
     private final String partnerId;
 
@@ -125,7 +127,11 @@ public class ShopStyle
 
     private void configure()
     {
-        httpClient = new DefaultHttpClient();
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(connectionPoolSize);
+        httpClient = HttpClients.custom()
+            .setConnectionManager(cm)
+            .build();
         mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
